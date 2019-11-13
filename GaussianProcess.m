@@ -53,6 +53,10 @@ y_test = SNR(krand2,1);
 X = PdBm; 
 y = SNR; 
 
+X_small = PdBm(125,:);
+y_small = SNR(125,1); 
+
+
 %% Use MATLAB library for GP - start with default settings
 % this section of code predicts the SNR from an input of the power in each
 % span to ~ 96% accuracy 
@@ -78,6 +82,7 @@ num_iters = 400;
 
 [xstar, xstarrec] =  gradascent(X, xstartest, gamma, k1, k2, alpha, num_iters ); 
 
+
 figure
 hold on 
 plot(xstarrec, 'x')
@@ -93,12 +98,25 @@ hold off
 
 ystarfinal = predict(gprMdl, xstar);
 
+%{
 figure
 hold on 
-hist(y_test - ypred, 100);
+histogram(y_test - ypred, 100);
 hold off 
+%}
+
+%% Multisample GPR test 
 
 
+num_samples = 64;
 
+sample_size = 250; 
+
+[xstarave, xstars] = multisampleGPR(X, y, num_samples, sample_size, gamma, num_iters); 
+
+figure
+hold on 
+plot(xstarave, 'o')
+hold off 
 
 
