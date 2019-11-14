@@ -76,21 +76,23 @@ alpha = gprMdl.Alpha;
 
 %save('PythonFilealpha', '-v7', 'alpha');
 
-xstar_ini = X(50,:); 
+xstar_ini = X(1,:); 
 
 gamma = 5e-5; % learning rate 
 
-num_iters = 400;
+num_iters = 1000;
+
+tic
 
 [xstar, xstarrec] =  gradascent(X_train, xstar_ini, gamma, k1, k2, alpha, num_iters ); 
 
+toc 
 
 figure
 hold on 
 plot(xstarrec, 'x')
 title('Learning curve')
 legend
-ylim([0 inf])
 hold off 
 
 
@@ -111,7 +113,9 @@ histogram(y_test - ypred, 100);
 hold off 
 %}
 
-%% Multisample GPR test - 64 samples of size 250
+%% Multisample GPR test - 64 samples of size 250 (125 pairs)
+
+
 
 % parameters for multisample GPR
 num_samples = 64;
@@ -120,7 +124,7 @@ sample_size = 250;
 
 gamma_multi = 5e-3; 
 
-num_iters_multi = 700; 
+num_iters_multi = 2500; 
 
 %[xstarave, xstars] = multisampleGPR(X, y, num_samples, sample_size, gamma_multi, num_iters); 
 
@@ -163,11 +167,11 @@ toc
 xstar_multi_ave = mean(xstar_multi); 
 
 
+
 figure
 hold on 
 plot(xstar_rec_multi, 'x')
 title('Learning curve multi')
-ylim([0 inf])
 hold off 
 
 
