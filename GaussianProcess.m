@@ -62,7 +62,7 @@ y_small = SNR(125,1);
 % span to ~ 96% accuracy 
 tic
 
-[gprMdl, aveaccuracy, ypred] = GPR(X,y, X_test, y_test);
+%[gprMdl, aveaccuracy, ypred] = GPR(X_train,y_train, X_test, y_test);
 
 toc
 
@@ -74,25 +74,31 @@ k2 = gprMdl.KernelInformation.KernelParameters(2);
 
 alpha = gprMdl.Alpha;
 
-xstartest = X(1,:); 
+%save('PythonFilealpha', '-v7', 'alpha');
+
+xstar_ini = X(50,:); 
 
 gamma = 5e-5; % learning rate 
 
 num_iters = 400;
 
-[xstar, xstarrec] =  gradascent(X, xstartest, gamma, k1, k2, alpha, num_iters ); 
+[xstar, xstarrec] =  gradascent(X_train, xstar_ini, gamma, k1, k2, alpha, num_iters ); 
 
 
 figure
 hold on 
 plot(xstarrec, 'x')
+title('Learning curve')
 legend
+ylim([0 inf])
 hold off 
 
 
 figure
 hold on 
 plot(xstar, 'o')
+title('Optimal power array')
+ylim([0 inf])
 hold off 
 
 
@@ -105,18 +111,75 @@ histogram(y_test - ypred, 100);
 hold off 
 %}
 
-%% Multisample GPR test 
+%% Multisample GPR test - 64 samples of size 250
 
-
+% parameters for multisample GPR
 num_samples = 64;
 
 sample_size = 250; 
 
-[xstarave, xstars] = multisampleGPR(X, y, num_samples, sample_size, gamma, num_iters); 
+gamma_multi = 5e-3; 
+
+num_iters_multi = 700; 
+
+%[xstarave, xstars] = multisampleGPR(X, y, num_samples, sample_size, gamma_multi, num_iters); 
+
+
+% put all of this in a loop -> assign each iter to pre-defined array 
+
+
+tic
+
+xstar_multi = zeros(num_samples,  size(xstar,2));
+
+for i = 1:num_samples
+
+    rand_ind = randperm(sample_size);
+
+    X_rand = X(rand_ind,:);
+        
+    y_rand = y(rand_ind,1);
+        
+    xstar_multi_ini = X_rand(1,:);
+
+
+    gprMdl_multi = fitrgp(X_rand,y_rand,'KernelFunction', 'squaredexponential','BasisFunction', 'none', 'FitMethod', 'exact'); 
+
+
+     % kernel parameter 1 = l^2, kernel parameter 2 = v^2 
+    k1_mul = gprMdl_multi.KernelInformation.KernelParameters(1); 
+    k2_mul = gprMdl_multi.KernelInformation.KernelParameters(2); 
+
+    alpha_mul = gprMdl_multi.Alpha;
+
+    [xstar_multi(i,:), xstar_rec_multi] = gradascent(X_rand, xstar_multi_ini, gamma_multi, k1_mul, k2_mul, alpha_mul, num_iters_multi );
+
+end
+
+toc
+
+% find the average over all of the returned optimal power vectors 
+
+xstar_multi_ave = mean(xstar_multi); 
+
 
 figure
 hold on 
-plot(xstarave, 'o')
+plot(xstar_rec_multi, 'x')
+title('Learning curve multi')
+ylim([0 inf])
 hold off 
+
+
+figure
+hold on 
+plot(xstar_multi_ave, 'o')
+title('Optimal power array multi')
+ylim([0 inf])
+hold off 
+
+
+
+
 
 

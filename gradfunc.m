@@ -11,7 +11,9 @@ for i = 1:size(X,1)
 
 end
 
-grad = (k2/k1)*(X - xstar)'*K*al'; 
+%grad = (k2/k1)*(X - xstar)'*K*al'; 
+
+grad = (1/k1)*(X - xstar)'*K*al'; 
 
 grad = sum(grad,2);
 
