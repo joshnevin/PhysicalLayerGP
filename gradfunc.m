@@ -7,9 +7,7 @@ for i = 1:size(X,1)
     
 end
 
-grad = (1/(k1^2))*(X - xstar)'*K*al'; 
-
-grad = sum(grad,2);
+grad = (1/(k1^2))*(X - xstar)'*(K.*al); 
 
 
 end

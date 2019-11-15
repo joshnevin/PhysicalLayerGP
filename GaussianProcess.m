@@ -62,7 +62,7 @@ y_small = SNR(125,1);
 % span to ~ 96% accuracy 
 tic
 
-%[gprMdl, aveaccuracy, ypred] = GPR(X_train,y_train, X_test, y_test);
+%[gprMdl, aveaccuracy, ypred] = GPR(X,y, X_test, y_test);
 
 toc
 
@@ -76,15 +76,20 @@ alpha = gprMdl.Alpha;
 
 %save('PythonFilealpha', '-v7', 'alpha');
 
-xstar_ini = X(1,:); 
+%xstar_ini = xstar_multi_ave; 
 
-gamma = 5e-5; % learning rate 
+xstar_ini = X(1,:);
+
+gamma = 1; % learning rate 
 
 num_iters = 1000;
 
 tic
 
-[xstar, xstarrec] =  gradascent(X_train, xstar_ini, gamma, k1, k2, alpha, num_iters ); 
+% can change to David's implmentation by changing the function called by
+% gradascent 
+
+[xstar, xstarrec] =  gradascent(X, xstar_ini, gamma, k1, k2, alpha, num_iters ); 
 
 toc 
 
@@ -122,9 +127,9 @@ num_samples = 64;
 
 sample_size = 250; 
 
-gamma_multi = 5e-3; 
+gamma_multi = 1; 
 
-num_iters_multi = 2500; 
+num_iters_multi =  1000; 
 
 %[xstarave, xstars] = multisampleGPR(X, y, num_samples, sample_size, gamma_multi, num_iters); 
 
@@ -151,11 +156,12 @@ for i = 1:num_samples
 
 
      % kernel parameter 1 = l^2, kernel parameter 2 = v^2 
-    k1_mul = gprMdl_multi.KernelInformation.KernelParameters(1); 
+    
+    k1_mul = gprMdl_multi.KernelInformation.KernelParameters(1); % fit based on each sample 
     k2_mul = gprMdl_multi.KernelInformation.KernelParameters(2); 
 
     alpha_mul = gprMdl_multi.Alpha;
-
+     
     [xstar_multi(i,:), xstar_rec_multi] = gradascent(X_rand, xstar_multi_ini, gamma_multi, k1_mul, k2_mul, alpha_mul, num_iters_multi );
 
 end
@@ -166,7 +172,7 @@ toc
 
 xstar_multi_ave = mean(xstar_multi); 
 
-
+ystarfinal_multi = predict(gprMdl, xstar_multi_ave);
 
 figure
 hold on 
@@ -184,6 +190,19 @@ hold off
 
 
 
+%% gradient test section 
+
+%{
+
+altestgrad = rand(size(X_test,1) , 1); 
+
+gradtestJosh_g = gradfunc(xstar_ini, X_test, 1.5, 2.5, altestgrad);
+
+gradtestDavid_g = gradfunc_david(xstar_ini, X_test, 1.5, 2.5, altestgrad);
+
+ratio = gradtestJosh./gradtestDavid; 
 
 
+
+%}
 
